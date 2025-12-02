@@ -1,0 +1,25 @@
+plugins {
+    id 'java-library'
+}
+
+version '0.1.0-SNAPSHOT'
+
+compileJava.sourceCompatibility = JavaVersion.VERSION_21
+compileJava.targetCompatibility = JavaVersion.VERSION_21
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'net.portswigger.burp.extensions:montoya-api:2025.8'
+    implementation 'com.google.code.gson:gson:2.10.+'
+    compileOnly 'org.projectlombok:lombok:1.18.+'
+    annotationProcessor 'org.projectlombok:lombok:1.18.+'
+}
+
+tasks.register('bigJar', Jar) {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
