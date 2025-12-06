@@ -5,11 +5,13 @@ import burp.api.montoya.extension.ExtensionUnloadingHandler;
 import burp.api.montoya.http.handler.*;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
+import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
-import com.google.gson.GsonBuilder;
-
+import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -21,28 +23,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
 
-public class BurpExtender implements BurpExtension, ExtensionUnloadingHandler, ContextMenuItemsProvider, HttpHandler
-{
+public class BurpExtender implements BurpExtension, ExtensionUnloadingHandler, ContextMenuItemsProvider, HttpHandler {
     public static final String EXTENSION_VERSION = "0.1.0";
     public static final String TAB_NAME = "Miao";
     public static final String EXTENSION_NAME = "Miao";
 
-    public Map<Integer, HttpRequestWithTimestamp> requestMap = new HashMap<>();
+    private final Map<Integer, HttpRequestWithTimestamp> existingRequestMap = new ConcurrentHashMap<>(); // NEW
+    private final Map<Integer, HttpRequestWithTimestamp> nonExistingRequestMap = new ConcurrentHashMap<>(); // NEW
+    private TimingTableModel existingResourceModel;
+    private TimingTableModel nonExistingResourceModel;
 
     private MontoyaApi api;
 
     private static PrintWriter out;
     private static PrintWriter err;
 
-    // UI elements
-    private JScrollPane outerScrollPane;
-    private JCheckBox proxySigningEnabledCheckBox;
-    private JCheckBox useSuiteScopeCheckBox;
-    private JCheckBox repeaterSigningEnabledCheckBox;
-    private JTextField pathTextField;
-    private JTextField apiSecretKeyTextField;
-    private JTextField apiKeyIdTextField;
-    private JTextField timestampTextField;
+    private JCheckBox enableCheckbox;
+    private JComboBox<String> typeSelector;
 
     @Override
     public void initialize(MontoyaApi api) {
@@ -53,169 +50,152 @@ public class BurpExtender implements BurpExtension, ExtensionUnloadingHandler, C
         err = new PrintWriter(api.logging().error(), true);
 
         SwingUtilities.invokeLater(() -> {
-            buildMainTab();
+            setupUI(api.userInterface());
             api.extension().registerUnloadingHandler(BurpExtender.this);
             api.http().registerHttpHandler(BurpExtender.this);
-            api.userInterface().registerSuiteTab(TAB_NAME, outerScrollPane);
         });
     }
 
-    public static void info(final String msg)
-    {
+    private void setupUI(UserInterface ui) {
+
+        existingResourceModel = new TimingTableModel();
+        nonExistingResourceModel = new TimingTableModel();
+
+        JTable existingTable = new JTable(existingResourceModel);
+        JTable nonExistingTable = new JTable(nonExistingResourceModel);
+
+        existingTable.setRowSorter(new TableRowSorter<>(existingResourceModel));
+        nonExistingTable.setRowSorter(new TableRowSorter<>(nonExistingResourceModel));
+
+        JPanel controlPanel = new JPanel();
+        controlPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        enableCheckbox = new JCheckBox("Enable timing capture");
+        enableCheckbox.setSelected(false);
+
+        typeSelector = new JComboBox<>(new String[]{
+                "Existing resource",
+                "Non-existing resource"
+        });
+
+        // --- NEW: Help button and label ---
+        JLabel helpLabel = new JLabel("Why is the time different than what I see in Intruder?");
+        JButton helpButton = new JButton("?");
+        helpButton.setMargin(new Insets(2, 5, 2, 5));
+        helpButton.addActionListener(e -> {
+            HelpPanel helpPanel = new HelpPanel();
+            JOptionPane.showMessageDialog(controlPanel, helpPanel, "Timing Info Help", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        controlPanel.add(enableCheckbox);
+        controlPanel.add(new JLabel("→ Add results to: "));
+        controlPanel.add(typeSelector);
+        controlPanel.add(helpLabel);
+        controlPanel.add(helpButton);
+
+        // --- Create scroll panes with padding ---
+        JScrollPane existingScroll = new JScrollPane(existingTable);
+        existingScroll.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JScrollPane nonExistingScroll = new JScrollPane(nonExistingTable);
+        nonExistingScroll.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        // --- Panels to control preferred height ---
+        JPanel existingPanel = new JPanel(new BorderLayout());
+        existingPanel.add(existingScroll, BorderLayout.CENTER);
+        existingPanel.setPreferredSize(new Dimension(0, 300)); // ~50% of typical vertical space
+
+        JPanel nonExistingPanel = new JPanel(new BorderLayout());
+        nonExistingPanel.add(nonExistingScroll, BorderLayout.CENTER);
+        nonExistingPanel.setPreferredSize(new Dimension(0, 300));
+
+        // --- Split pane ---
+        JSplitPane split = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                existingPanel,
+                nonExistingPanel
+        );
+        split.setResizeWeight(0.5);
+
+        // --- Panel below the tables with label and button ---
+        JPanel mannWhitneyPanel = new JPanel();
+        mannWhitneyPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        JLabel label = new JLabel("Mann–Whitney U test");
+        JButton button = new JButton("Run Test");
+        button.addActionListener(e -> performMannWhitneyUTest()); // NEW: calls new function
+        mannWhitneyPanel.add(label);
+        mannWhitneyPanel.add(button);
+
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        mainPanel.add(controlPanel, BorderLayout.NORTH);
+        mainPanel.add(split, BorderLayout.CENTER);
+        mainPanel.add(mannWhitneyPanel, BorderLayout.SOUTH);
+
+        ui.registerSuiteTab(TAB_NAME, mainPanel);
+    }
+
+    public static void info(final String msg) {
         out.println(msg);
     }
 
-    public static void debug(final String msg)
-    {
+    public static void debug(final String msg) {
         out.println(msg);
     }
 
-    public static void error(final String msg)
-    {
+    public static void error(final String msg) {
         err.println(msg);
     }
 
     @Override
-    public void extensionUnloaded() {
-        // save extension version directly in Burp in case json settings fail
-        api.persistence().extensionData().setString("ExtensionVersion", EXTENSION_VERSION);
-        final Settings savedSettings = Settings.builder()
-                .proxySigningEnabled(proxySigningEnabledCheckBox.isSelected())
-                .useSuiteScope(useSuiteScopeCheckBox.isSelected())
-                .repeaterSigningEnabled(repeaterSigningEnabledCheckBox.isSelected())
-                .extensionVersion(EXTENSION_VERSION)
-                .build();
-        final String settingsJson = new GsonBuilder()
-                //.setPrettyPrinting()
-                .setVersion(savedSettings.version())
-                .create()
-                .toJson(savedSettings, Settings.class);
-        api.persistence().extensionData().setString("ExtensionSettings", settingsJson);
-        api.persistence().extensionData().setString("SettingsVersion", Float.toString(savedSettings.version()));
-    }
-
-    private static GridBagConstraints newConstraint(int gridx, int gridy, int anchor) {
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridy = gridy;
-        c.gridx = gridx;
-        c.gridwidth = 1;
-        c.gridheight = 1;
-        c.anchor = anchor;
-        c.insets = new Insets(3, 3, 3, 3);
-        return c;
-    }
-
-    private void buildMainTab() {
-
-        // when a text field loses focus, strip whitespace
-        FocusListener textFieldFocusListener = new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent focusEvent) {
-
-            }
-
-            @Override
-            public void focusLost(FocusEvent focusEvent) {
-                JTextField textField = (JTextField)focusEvent.getSource();
-                textField.setText(textField.getText().trim());
-            }
-        };
-
-        final int TEXT_FIELD_WIDTH = 40;
-
-        // settings
-        JPanel settingsPanel = new JPanel(new GridBagLayout());
-
-        proxySigningEnabledCheckBox = new JCheckBox("Proxy signing");
-        useSuiteScopeCheckBox = new JCheckBox("Use suite scope");
-        repeaterSigningEnabledCheckBox = new JCheckBox("Repeater signing");
-
-        pathTextField = new JTextField(TEXT_FIELD_WIDTH);
-        pathTextField.addFocusListener(textFieldFocusListener);
-        apiKeyIdTextField = new JTextField(TEXT_FIELD_WIDTH);
-        apiKeyIdTextField.addFocusListener(textFieldFocusListener);
-        apiSecretKeyTextField = new JTextField(TEXT_FIELD_WIDTH);
-        apiSecretKeyTextField.addFocusListener(textFieldFocusListener);
-        timestampTextField = new JTextField(TEXT_FIELD_WIDTH);
-        timestampTextField.addFocusListener(textFieldFocusListener);
-
-        int outerPanelY = 0;
-        JPanel outerPanel = new JPanel(new GridBagLayout());
-
-        // add a title
-        var titleLabel =  new JLabel(EXTENSION_NAME);
-        titleLabel.setFont(new Font(titleLabel.getFont().getFamily(), Font.BOLD, titleLabel.getFont().getSize()));
-        outerPanel.add(titleLabel, newConstraint(0, outerPanelY++, GridBagConstraints.LINE_START));
-        GridBagConstraints c000 = newConstraint(0, outerPanelY++, GridBagConstraints.CENTER);
-        c000.fill = GridBagConstraints.HORIZONTAL;
-        outerPanel.add(new JSeparator(SwingConstants.HORIZONTAL), c000);
-
-        // top level settings panel. check boxes laid out left to right with wrap enabled.
-        JPanel globalSettingsPanel = new JPanel(new FlowLayout());
-        globalSettingsPanel.add(proxySigningEnabledCheckBox);
-        globalSettingsPanel.add(useSuiteScopeCheckBox);
-        globalSettingsPanel.add(repeaterSigningEnabledCheckBox);
-        outerPanel.add(globalSettingsPanel, newConstraint(0, outerPanelY++, GridBagConstraints.LINE_START));
-        GridBagConstraints c001 = newConstraint(0, outerPanelY++, GridBagConstraints.CENTER);
-        c001.fill = GridBagConstraints.HORIZONTAL;
-        outerPanel.add(new JSeparator(SwingConstants.HORIZONTAL), c001);
-
-        // construct text fields panel
-        int settingsPanelY = 0;
-
-        settingsPanel.add(new JLabel("Path"), newConstraint(0, settingsPanelY, GridBagConstraints.LINE_START));
-        settingsPanel.add(pathTextField, newConstraint(1, settingsPanelY++, GridBagConstraints.LINE_START));
-
-        settingsPanel.add(new JLabel("KeyId"), newConstraint(0, settingsPanelY, GridBagConstraints.LINE_START));
-        settingsPanel.add(apiKeyIdTextField, newConstraint(1, settingsPanelY++, GridBagConstraints.LINE_START));
-
-        settingsPanel.add(new JLabel("Secret"), newConstraint(0, settingsPanelY, GridBagConstraints.LINE_START));
-        settingsPanel.add(apiSecretKeyTextField, newConstraint(1, settingsPanelY++, GridBagConstraints.LINE_START));
-
-        settingsPanel.add(new JLabel("Timestamp"), newConstraint(0, settingsPanelY, GridBagConstraints.LINE_START));
-        settingsPanel.add(timestampTextField, newConstraint(1, settingsPanelY++, GridBagConstraints.LINE_START));
-
-        outerPanel.add(settingsPanel, newConstraint(0, outerPanelY++, GridBagConstraints.FIRST_LINE_START));
-
-        // add help text
-        GridBagConstraints c002 = newConstraint(0, outerPanelY++, GridBagConstraints.CENTER);
-        c002.fill = GridBagConstraints.HORIZONTAL;
-        outerPanel.add(new JSeparator(SwingConstants.HORIZONTAL), c002);
-
-        // add help text
-        JPanel helpPanel = new HelpPanel();
-        helpPanel.setBorder(new TitledBorder(""));
-        outerPanel.add(helpPanel, newConstraint(0, outerPanelY, GridBagConstraints.FIRST_LINE_START));
-
-        // get content into upper left of panel
-        JPanel outerNorthPanel = new JPanel(new BorderLayout());
-        JPanel outerWestPanel = new JPanel(new BorderLayout());
-        outerNorthPanel.add(outerPanel, BorderLayout.PAGE_START);
-        outerWestPanel.add(outerNorthPanel, BorderLayout.LINE_START);
-        outerScrollPane = new JScrollPane(outerWestPanel);
-    }
-
-    @Override
     public RequestToBeSentAction handleHttpRequestToBeSent(HttpRequestToBeSent requestToBeSent) {
-        if (requestToBeSent.toolSource().isFromTool(ToolType.INTRUDER)) {
-            requestMap.put(requestToBeSent.messageId(), new HttpRequestWithTimestamp(
-                    requestToBeSent.messageId(), System.currentTimeMillis()
-            ));
+        if (requestToBeSent.toolSource().isFromTool(ToolType.INTRUDER) && enableCheckbox.isSelected()) {
+            String selected = (String) typeSelector.getSelectedItem();
+            if ("Existing resource".equals(selected)) {
+                existingRequestMap.put(requestToBeSent.messageId(),
+                        new HttpRequestWithTimestamp(requestToBeSent.messageId(), System.currentTimeMillis()));
+            } else {
+                nonExistingRequestMap.put(requestToBeSent.messageId(),
+                        new HttpRequestWithTimestamp(requestToBeSent.messageId(), System.currentTimeMillis()));
+            }
         }
-        return null;
+        return RequestToBeSentAction.continueWith(requestToBeSent);
     }
 
     @Override
     public ResponseReceivedAction handleHttpResponseReceived(HttpResponseReceived responseReceived) {
-        if (responseReceived.toolSource().isFromTool(ToolType.INTRUDER)) {
-            HttpRequestWithTimestamp r = requestMap.get(responseReceived.messageId());
-            if (r != null) {
+        if (responseReceived.toolSource().isFromTool(ToolType.INTRUDER) && enableCheckbox.isSelected()) {
+            String selected = (String) typeSelector.getSelectedItem();
+            HttpRequestWithTimestamp r;
+            if ("Existing resource".equals(selected)) {
+                r = existingRequestMap.get(responseReceived.messageId());
+            } else {
+                r = nonExistingRequestMap.get(responseReceived.messageId());
+            }
+            if (r == null) {
+                return ResponseReceivedAction.continueWith(responseReceived);
+            } else {
                 final long elapsed = System.currentTimeMillis() - r.sendTimestamp;
                 info(String.format("[%d] Elapsed %d millis", r.burpMessageId, elapsed));
+
+                SwingUtilities.invokeLater(() -> {
+                    if ("Existing resource".equals(selected)) {
+                        existingResourceModel.addTiming(r, elapsed);
+                    } else {
+                        nonExistingResourceModel.addTiming(r, elapsed);
+                    }
+                });
             }
-            return null;
         }
-        return null;
+        return ResponseReceivedAction.continueWith(responseReceived);
     }
 
+    @Override
+    public void extensionUnloaded() {
+
+    }
+
+    private void performMannWhitneyUTest() {
+
+    }
 }
