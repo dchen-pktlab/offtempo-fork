@@ -1,21 +1,18 @@
-package burp;
+package burp.ui;
 
 import javax.swing.*;
-import javax.swing.text.rtf.RTFEditorKit;
 import java.awt.*;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class HelpPanel extends JPanel {
 
-    private final static String HELP_FILE_TXT = "help.txt"; // plain text version
+    private final static String HELP_FILE_TXT = "help.txt";
 
     public HelpPanel() {
         JTextArea textArea = new JTextArea();
         textArea.setEditable(false);
-        textArea.setFocusable(false);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
 

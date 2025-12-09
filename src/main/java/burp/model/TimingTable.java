@@ -1,10 +1,10 @@
-package burp;
+package burp.model;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TimingTableModel extends AbstractTableModel {
+public class TimingTable extends AbstractTableModel {
 
     private static class Row {
         final HttpRequestWithTimestamp req;
@@ -26,6 +26,11 @@ public class TimingTableModel extends AbstractTableModel {
     public void addTiming(HttpRequestWithTimestamp req, long elapsed) {
         rows.add(new Row(req, elapsed));
         fireTableRowsInserted(rows.size() - 1, rows.size() - 1);
+    }
+
+    public void clear() {
+        rows.clear();
+        fireTableDataChanged();
     }
 
     @Override
@@ -51,5 +56,13 @@ public class TimingTableModel extends AbstractTableModel {
             case 1 -> row.elapsed;
             default -> "";
         };
+    }
+
+    public List<Long> getAllTimings() {
+        List<Long> result = new ArrayList<>(rows.size());
+        for (Row r : rows) {
+            result.add(r.elapsed);
+        }
+        return result;
     }
 }

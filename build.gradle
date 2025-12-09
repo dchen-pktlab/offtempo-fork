@@ -17,6 +17,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.+'
     annotationProcessor 'org.projectlombok:lombok:1.18.+'
     implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation 'org.knowm.xchart:xchart:3.8.2'
 }
 
 tasks.register('bigJar', Jar) {

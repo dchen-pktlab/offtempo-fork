@@ -1,11 +1,12 @@
-package burp;
+package burp.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import burp.api.montoya.http.message.requests.HttpRequest;
-
+@Getter
 @AllArgsConstructor
 public class HttpRequestWithTimestamp {
     final int burpMessageId;
     final long sendTimestamp;
+
 }
