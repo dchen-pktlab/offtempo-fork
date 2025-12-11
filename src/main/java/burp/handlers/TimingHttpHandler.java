@@ -23,7 +23,7 @@ public class TimingHttpHandler implements HttpHandler {
     public RequestToBeSentAction handleHttpRequestToBeSent(HttpRequestToBeSent requestToBeSent) {
         if (requestToBeSent.toolSource().isFromTool(ToolType.INTRUDER) && mainPanel.isCaptureEnabled()) {
             String selected = mainPanel.getSelectedType();
-            if ("Existing resource".equals(selected)) {
+            if ("Pool A".equals(selected)) {
                 existingRequestMap.put(requestToBeSent.messageId(), new HttpRequestWithTimestamp(requestToBeSent.messageId(), System.currentTimeMillis()));
             } else {
                 nonExistingRequestMap.put(requestToBeSent.messageId(), new HttpRequestWithTimestamp(requestToBeSent.messageId(), System.currentTimeMillis()));
@@ -37,7 +37,7 @@ public class TimingHttpHandler implements HttpHandler {
         if (responseReceived.toolSource().isFromTool(ToolType.INTRUDER) && mainPanel.isCaptureEnabled()) {
             String selected = mainPanel.getSelectedType();
             HttpRequestWithTimestamp r;
-            if ("Existing resource".equals(selected)) {
+            if ("Pool A".equals(selected)) {
                 r = existingRequestMap.get(responseReceived.messageId());
             } else {
                 r = nonExistingRequestMap.get(responseReceived.messageId());

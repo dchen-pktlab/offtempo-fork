@@ -35,6 +35,7 @@ public class MainPanel {
         nonExistingModel = new TimingTable();
 
         root = new JPanel(new BorderLayout());
+        root.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         controlPanel = new ControlPanel(e -> showHelp(), e -> clearTables());
         tablesPanel = new TimingTablesPanel(existingModel, nonExistingModel);
@@ -53,7 +54,7 @@ public class MainPanel {
                 bottom
         );
 
-        split.setResizeWeight(0.9);
+        split.setResizeWeight(0.5);
         split.setContinuousLayout(true);
         split.setDividerSize(8);
 
@@ -64,14 +65,14 @@ public class MainPanel {
 
     private void showHelp() {
         HelpPanel hp = new HelpPanel();
-        JOptionPane.showMessageDialog(root, hp, "Timing Info Help", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(root, hp, "Why are these times different from what I see in Intruder?", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void runAnalysis() {
         List<Long> existingTimes = existingModel.getAllTimings();
         List<Long> nonExistingTimes = nonExistingModel.getAllTimings();
         if (existingTimes.isEmpty() || nonExistingTimes.isEmpty()) {
-            analysisPanel.showResult(null);
+            JOptionPane.showMessageDialog(root, "No data available", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -84,6 +85,9 @@ public class MainPanel {
 
     private void showPlot() {
         try {
+            if (existingModel.getAllTimings().isEmpty() || nonExistingModel.getAllTimings().isEmpty()) {
+                return;
+            }
             var existing = Winsorizer.winsorize(existingModel.getAllTimings().stream().map(Long::doubleValue).toList(), 0.95);
             var nonExisting = Winsorizer.winsorize(nonExistingModel.getAllTimings().stream().map(Long::doubleValue).toList(), 0.95);
             XChartPanel<XYChart> panel = plotService.buildPairedScatter(existing, nonExisting);
@@ -110,7 +114,7 @@ public class MainPanel {
     public void addTiming(String targetType, int burpMessageId, long elapsedMs) {
         SwingUtilities.invokeLater(() -> {
             HttpRequestWithTimestamp r = new HttpRequestWithTimestamp(burpMessageId, System.currentTimeMillis());
-            if ("Existing resource".equals(targetType)) existingModel.addTiming(r, elapsedMs);
+            if ("Pool A".equals(targetType)) existingModel.addTiming(r, elapsedMs);
             else nonExistingModel.addTiming(r, elapsedMs);
         });
     }

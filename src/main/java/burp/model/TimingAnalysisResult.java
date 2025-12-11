@@ -6,10 +6,10 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public class TimingAnalysisResult {
-    private final int existingCount;
-    private final int nonExistingCount;
-    private final double uStatistic;
-    private final double AUC;
-    private final double cohensD;
+    private final PoolStats plotAStats;
+    private final PoolStats plotBStats;
 
+    private final double uStatistic;
+    private final double auc;
+    private final double signalToNoise;
 }

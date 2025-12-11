@@ -25,7 +25,7 @@ public class PlotService {
 
         XYChart chart = new XYChartBuilder()
                 .width(900).height(400)
-                .title("HTTP Response Times (Winsorized 95th Percentile)")
+                .title("HTTP Response Times")
                 .xAxisTitle("Request Index (paired)")
                 .yAxisTitle("Time (ms)")
                 .build();
@@ -41,10 +41,10 @@ public class PlotService {
         chart.getStyler().setPlotBackgroundColor(Color.WHITE);
         chart.getStyler().setPlotGridLinesColor(new Color(220, 220, 220));
 
-        XYSeries seriesExisting = chart.addSeries("Existing", x, existingSubset);
+        XYSeries seriesExisting = chart.addSeries("Pool A", x, existingSubset);
         seriesExisting.setXYSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Scatter);
 
-        XYSeries seriesNonExisting = chart.addSeries("Non-Existing", x, nonExistingSubset);
+        XYSeries seriesNonExisting = chart.addSeries("Pool B", x, nonExistingSubset);
         seriesNonExisting.setXYSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Scatter);
 
         lastChartPanel = new XChartPanel<>(chart);

@@ -1,40 +1,37 @@
 package burp.ui;
 
 import burp.model.TimingTable;
+
 import javax.swing.*;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 
-public class TimingTablesPanel extends JSplitPane {
-    private final TimingTable existingModel;
-    private final TimingTable nonExistingModel;
+public class TimingTablesPanel extends JPanel {
 
     public TimingTablesPanel(TimingTable existing, TimingTable nonExisting) {
-        super(JSplitPane.HORIZONTAL_SPLIT);
-        this.existingModel = existing;
-        this.nonExistingModel = nonExisting;
+        super(new GridLayout(1, 2, 20, 0));
 
-        JTable existingTable = new JTable(existingModel);
-        JTable nonExistingTable = new JTable(nonExistingModel);
-        existingTable.setRowSorter(new TableRowSorter<>(existingModel));
-        nonExistingTable.setRowSorter(new TableRowSorter<>(nonExistingModel));
+        JTable existingTable = new JTable(existing);
+        JTable nonExistingTable = new JTable(nonExisting);
+
+        existingTable.setRowSorter(new TableRowSorter<>(existing));
+        nonExistingTable.setRowSorter(new TableRowSorter<>(nonExisting));
 
         JScrollPane leftScroll = new JScrollPane(existingTable);
         JScrollPane rightScroll = new JScrollPane(nonExistingTable);
 
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.add(leftScroll, BorderLayout.CENTER);
-        leftPanel.setPreferredSize(new Dimension(0,300));
-        leftPanel.setBorder(BorderFactory.createTitledBorder("Existing"));
+        leftPanel.setBorder(BorderFactory.createTitledBorder("Pool A"));
+        leftPanel.setPreferredSize(new Dimension(0, 300));
 
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.add(rightScroll, BorderLayout.CENTER);
-        rightPanel.setPreferredSize(new Dimension(0,300));
-        rightPanel.setBorder(BorderFactory.createTitledBorder("Non-existing"));
+        rightPanel.setBorder(BorderFactory.createTitledBorder("Pool B"));
+        rightPanel.setPreferredSize(new Dimension(0, 300));
 
-        setLeftComponent(leftPanel);
-        setRightComponent(rightPanel);
-        setResizeWeight(0.5);
+        add(leftPanel);
+        add(rightPanel);
+        setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
     }
-
 }
