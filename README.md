@@ -7,8 +7,6 @@ It helps penetration testers determine whether two classes of requests (e.g. val
 
 The extension computes common statistical measures used in timing attacks, including AUC (Area Under Curve), Mann–Whitney U, Cohen’s *d*, and signal-to-noise ratio, and presents them in a pentester-friendly UI.
 
----
-
 ## Features
 
 - Capture and separate timing samples into two request pools
@@ -17,8 +15,6 @@ The extension computes common statistical measures used in timing attacks, inclu
 - Additional descriptive statistics (mean, median, min/max, etc.)
 - Designed for timing-based enumeration and inference attacks
 - Fully local — no data leaves Burp Suite
-
----
 
 ## Installation
 
@@ -40,7 +36,7 @@ Requirements:
 - Gradle
 
 ```bash
-git clone https://github.com/<your-username>/timer.git
+git clone https://github.com/anvilventures/timer.git
 cd timer
 ./gradlew bigJar
 ```
@@ -52,8 +48,6 @@ build/libs/
 ```
 
 Load it into Burp Suite as a Java extension.
-
----
 
 ## Usage
 Work in progress ⚠️
