@@ -14,7 +14,7 @@ public class BurpExtender implements BurpExtension, ExtensionUnloadingHandler {
     private MontoyaApi api;
     private MainPanel mainPanel;
     private TimingHttpHandler httpHandler;
-    private final String extensionName = "Timer";
+    private final String extensionName = "OffTempo";
 
     @Override
     public void initialize(MontoyaApi api) {

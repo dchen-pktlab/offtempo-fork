@@ -1,53 +1,59 @@
-# Timer
+# OffTempo
 
-**Statistical Timing Side-Channel Analysis for Burp Suite**
+**Statistical timing side-channel analysis for Burp Suite.**
 
-TIMER is a Burp Suite extension that performs statistical analysis of HTTP response timing in order to identify timing-based side channels.  
-It helps penetration testers determine whether two classes of requests (e.g. valid vs invalid identifiers) are distinguishable based on response latency.
+OffTempo is a Burp Suite extension that captures HTTP response timing data from Intruder attacks and performs statistical analysis to detect timing-based side channels. It compares two pools of requests and tells you whether the observed latency differences are meaningful or just noise.
 
-The extension computes common statistical measures used in timing attacks, including AUC (Area Under Curve), Mann–Whitney U, Cohen’s *d*, and signal-to-noise ratio, and presents them in a pentester-friendly UI.
+Useful for detecting:
+- Resource enumeration via response time differentials
+- Timing-based blind SQL injection
+- Password / authentication timing attacks
+- Any scenario where server-side branching leaks through response latency
 
-## Features
-
-- Capture and separate timing samples into two request pools
-- Statistical comparison of response latency distributions
-- AUC-based distinguishability scoring with human-readable interpretation
-- Additional descriptive statistics (mean, median, min/max, etc.)
-- Designed for timing-based enumeration and inference attacks
-- Fully local — no data leaves Burp Suite
+The primary metric is **AUC (Area Under the Curve) via Mann–Whitney U** — intuitively, the probability that a random observation from Pool A exceeds one from Pool B. Additional statistics (Cohen's *d*, SNR, descriptive stats) are provided for deeper analysis.
 
 ## Installation
 
-### Option 1 — Download prebuilt JAR (recommended)
+### Prebuilt JAR (recommended)
 
-1. Go to the **Releases** page of this repository
-2. Download the latest `timer.jar`
-3. In Burp Suite:
-    - Open **Extensions → Installed**
-    - Click **Add**
-    - Select **Extension type: Java**
-    - Load the downloaded JAR
+1. Download the latest `offtempo.jar` from the [Releases](https://github.com/anvilventures/offtempo/releases) page
+2. In Burp Suite, go to **Extensions → Installed → Add**
+3. Set **Extension type: Java** and load the JAR
 
+### Build from source
 
-### Option 2 — Build from source
-
-Requirements:
-- Java 17+
-- Gradle
+Requires Java 17+ and Gradle.
 
 ```bash
-git clone https://github.com/anvilventures/timer.git
-cd timer
+git clone https://github.com/anvilventures/offtempo.git
+cd offtempo
 ./gradlew bigJar
 ```
 
-The fat JAR will be generated under:
-
-```bash
-build/libs/
-```
-
-Load it into Burp Suite as a Java extension.
+The fat JAR is generated under `build/libs/`. Load it into Burp Suite as above.
 
 ## Usage
-Work in progress ⚠️
+
+1. **Enable capture** — Toggle timing capture on in the OffTempo tab
+2. **Fill Pool A** — Set up an Intruder attack for your first class of requests (e.g. a known *existing* resource) and run it. Timing data flows into Pool A automatically
+3. **Switch to Pool B** — Select Pool B in OffTempo, then run a second Intruder attack for your other class of requests (e.g. a known *non-existing* resource)
+4. **Run analysis** — Click **Run**. OffTempo computes the AUC score, plots both distributions, and outputs statistical metrics
+
+The two pools don't need to contain identical requests. For enumeration testing it makes sense to send identical requests per pool to average out network jitter. For blind SQLi, one pool can be your baseline while the other contains injection payloads.
+
+### Interpreting results
+
+| AUC | Interpretation |
+|-----|----------------|
+| ~0.5 | No distinguishable difference — pools overlap completely |
+| 0.6–0.7 | Weak signal — may warrant further investigation |
+| 0.7–0.8 | Moderate signal — likely exploitable with enough samples |
+| >0.8 | Strong signal — clear timing side channel |
+
+## Related work
+
+- [Timeinator](https://github.com/FSecureLABS/timeinator) by F-Secure — A Burp Suite extension with a similar goal. Timeinator reimplements Intruder "sniper" mode within its own tab and reports basic descriptive statistics (mean, median, std dev). OffTempo differs by working with the full Intruder feature set and providing AUC-based distinguishability scoring for faster triage.
+
+## License
+
+See [LICENSE](LICENSE).
