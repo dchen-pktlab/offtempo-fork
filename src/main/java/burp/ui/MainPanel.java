@@ -65,7 +65,7 @@ public class MainPanel {
 
     private void showHelp() {
         HelpPanel hp = new HelpPanel();
-        JOptionPane.showMessageDialog(root, hp, "Why are these times different from what I see in Intruder?", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(root, hp, "Help", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void runAnalysis() {

@@ -1,4 +1,2 @@
-Burp Extension APIs do not allow access to the Intruder results table.
-This implementation relies on hooks in the send/receive pipeline, which have additional delay due to Burp CPU time.
-However, this should not significantly impact statistical evaluation, as adding a somewhat fixed delay (which averages out over many requests) should not change the bottom line.
-What matters is the relative difference between times.
+By enabling timing capture, OffTempo will record the timing data of every Intruder request in the selected Pool.
+Populate the two pools with the requests you want to analyze and click Run.
