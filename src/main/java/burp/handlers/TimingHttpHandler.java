@@ -35,16 +35,15 @@ public class TimingHttpHandler implements HttpHandler {
     @Override
     public ResponseReceivedAction handleHttpResponseReceived(HttpResponseReceived responseReceived) {
         if (responseReceived.toolSource().isFromTool(ToolType.INTRUDER) && mainPanel.isCaptureEnabled()) {
-            String selected = mainPanel.getSelectedType();
-            HttpRequestWithTimestamp r;
-            if ("Pool A".equals(selected)) {
-                r = existingRequestMap.get(responseReceived.messageId());
+            int messageId = responseReceived.messageId();
+            HttpRequestWithTimestamp request = existingRequestMap.remove(messageId);
+            if (request != null) {
+                mainPanel.addTiming("Pool A", request.getBurpMessageId(), System.currentTimeMillis() - request.getSendTimestamp());
             } else {
-                r = nonExistingRequestMap.get(responseReceived.messageId());
-            }
-            if (r != null) {
-                long elapsed = System.currentTimeMillis() - r.getSendTimestamp();
-                mainPanel.addTiming(selected, r.getBurpMessageId(), elapsed);
+                request = nonExistingRequestMap.remove(messageId);
+                if (request != null) {
+                    mainPanel.addTiming("Pool B", request.getBurpMessageId(), System.currentTimeMillis() - request.getSendTimestamp());
+                }
             }
         }
         return ResponseReceivedAction.continueWith(responseReceived);
