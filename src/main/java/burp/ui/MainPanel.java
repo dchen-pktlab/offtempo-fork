@@ -119,7 +119,7 @@ public class MainPanel {
             HttpRequestWithTimestamp r = new HttpRequestWithTimestamp(burpMessageId, System.currentTimeMillis());
             if ("Pool A".equals(targetType)) existingModel.addTiming(r, elapsedMs);
             else nonExistingModel.addTiming(r, elapsedMs);
-            controlPanel.updateCounts(existingModel.getRowCount(), nonExistingModel.getRowCount());
+            syncControls(existingModel.getRowCount(), nonExistingModel.getRowCount());
         });
     }
 
@@ -156,12 +156,12 @@ public class MainPanel {
 
     private void clearPoolA() {
         existingModel.clear();
-        controlPanel.updateCounts(0, nonExistingModel.getRowCount());
+        syncControls(0, nonExistingModel.getRowCount());
     }
 
     private void clearPoolB() {
         nonExistingModel.clear();
-        controlPanel.updateCounts(existingModel.getRowCount(), 0);
+        syncControls(existingModel.getRowCount(), 0);
     }
 
     private void clearTables() {
@@ -169,6 +169,11 @@ public class MainPanel {
         nonExistingModel.clear();
         plotPanel.clearPlot();
         analysisPanel.clearResult();
-        controlPanel.updateCounts(0, 0);
+        syncControls(0, 0);
+    }
+
+    private void syncControls(int countA, int countB) {
+        controlPanel.updateCounts(countA, countB);
+        analysisPanel.setRunEnabled(countA > 0 && countB > 0);
     }
 }

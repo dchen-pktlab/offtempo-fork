@@ -12,6 +12,7 @@ public class AnalysisPanel extends JPanel {
     private final AucPanel aucPanel;
     private final AddStatsPanel statsPanel;
 
+    private JButton runBtn;
     private JButton saveBtn;
 
     public AnalysisPanel(ActionListener runAction, ActionListener plotAction, ActionListener saveAction) {
@@ -20,7 +21,8 @@ public class AnalysisPanel extends JPanel {
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        JButton runBtn = new JButton("Run");
+        runBtn = new JButton("Run");
+        runBtn.setEnabled(false);
         runBtn.addActionListener(e -> {
             runAction.actionPerformed(e);
             plotAction.actionPerformed(e);
@@ -62,5 +64,9 @@ public class AnalysisPanel extends JPanel {
         aucPanel.clear();
         statsPanel.clear();
         saveBtn.setVisible(false);
+    }
+
+    public void setRunEnabled(boolean enabled) {
+        runBtn.setEnabled(enabled);
     }
 }
