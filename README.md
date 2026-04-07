@@ -1,4 +1,4 @@
-# OffTempo
+# OffTempo ⌛
 
 **Statistical timing side-channel analysis for Burp Suite.**
 
@@ -13,7 +13,7 @@ Useful for detecting:
 - Password / authentication timing attacks
 - Any scenario where server-side branching leaks through response latency
 
-The primary metric is **AUC (Area Under the Curve) via Mann–Whitney U** — intuitively, the probability that a random observation from Pool A exceeds one from Pool B. Additional statistics (Cohen's *d*, SNR, descriptive stats) are provided for deeper analysis.
+The primary metric is **AUC (Area Under the Curve) via Mann–Whitney U** - intuitively, the probability that a random observation from Pool A exceeds one from Pool B. Additional statistics (Cohen's *d*, p-value, standard deviation, p95/p99) are provided for deeper analysis.
 
 ## Installation
 
@@ -41,22 +41,13 @@ The JAR is generated under `build/libs/`. Load it into Burp Suite as above.
 1.  **Enable capture**: Toggle timing capture on in the OffTempo tab
   <img width="1313" height="341" alt="Pasted image 20260217165855" src="https://github.com/user-attachments/assets/c155f887-0523-40e1-8ead-d8a4604f44ab" />
 
-2.   **Fill Pool A**: Set up an Intruder attack for your first class of requests (e.g. a known *existing* resource) and run it. Timing data flows into Pool A automatically
+2.   **Fill Pool A**: Set up an Intruder attack for your first class of requests (e.g. a known *existing* resource) and run it. Timing data flows into Pool A automatically. Aim for at least 30–50 requests per pool to reduce the impact of network jitter and get statistically reliable results.
 <img width="1302" height="359" alt="Pasted image 20260217173558" src="https://github.com/user-attachments/assets/93cbdee8-ea37-4f61-8bcb-5b6bb3856ca9" />
 
-3.   **Switch to Pool B**: Select Pool B in OffTempo, then run a second Intruder attack for your other class of requests (e.g. a known *non-existing* resource)
+3.   **Switch to Pool B**: Select Pool B in OffTempo, then run a second Intruder attack for your other class of requests (e.g. a known *non-existing* resource). For enumeration testing, use the same request template as Pool A to isolate timing differences from content differences.
 <img width="1300" height="427" alt="Pasted image 20260217173733" src="https://github.com/user-attachments/assets/48dce55a-cb6a-4066-88c9-54d8f8e25a81" />
 
-4.  **Run analysis**: Click **Run**. OffTempo computes the AUC score, plots both distributions, and outputs statistical metrics
+4.  **Run analysis**: Click **Run**. OffTempo computes the AUC score, plots both distributions, and outputs statistical metrics. Use **Export CSV** to save raw timing data for offline analysis or to share with a colleague.
 <img width="1314" height="873" alt="Pasted image 20260217173915" src="https://github.com/user-attachments/assets/e613c78b-378e-418b-9699-873ccd932890" />
 
-The two pools don't need to contain identical requests. For enumeration testing it makes sense to send identical requests per pool to average out network jitter. For blind SQLi, one pool can be your baseline while the other contains injection payloads.
-
-### Interpreting results
-
-| AUC | Interpretation |
-|-----|----------------|
-| ~0.5 | No distinguishable difference |
-| 0.6–0.7 | Weak signal — may warrant further investigation |
-| 0.7–0.8 | Moderate signal — likely exploitable with enough samples |
-| >0.8 | Strong signal — clear timing side channel |
+The two pools don't need to contain identical requests. For blind SQLi, one pool can be your baseline while the other contains injection payloads. The request structure can differ as long as the timing difference is what you're measuring.
