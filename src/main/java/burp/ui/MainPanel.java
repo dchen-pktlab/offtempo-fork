@@ -116,6 +116,7 @@ public class MainPanel {
             HttpRequestWithTimestamp r = new HttpRequestWithTimestamp(burpMessageId, System.currentTimeMillis());
             if ("Pool A".equals(targetType)) existingModel.addTiming(r, elapsedMs);
             else nonExistingModel.addTiming(r, elapsedMs);
+            controlPanel.updateCounts(existingModel.getRowCount(), nonExistingModel.getRowCount());
         });
     }
 
@@ -124,5 +125,6 @@ public class MainPanel {
         nonExistingModel.clear();
         plotPanel.clearPlot();
         analysisPanel.clearResult();
+        controlPanel.updateCounts(0, 0);
     }
 }
