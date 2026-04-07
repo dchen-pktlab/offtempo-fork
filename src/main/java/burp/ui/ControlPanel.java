@@ -13,7 +13,7 @@ public class ControlPanel extends JPanel {
     private final JComboBox<String> typeSelector;
     private final JLabel sampleCountLabel;
 
-    public ControlPanel(ActionListener helpAction, ActionListener clearAction) {
+    public ControlPanel(ActionListener helpAction, ActionListener clearAAction, ActionListener clearBAction, ActionListener clearAllAction) {
         super(new BorderLayout());
         setBorder(new EmptyBorder(10, 10, 10, 10));
 
@@ -36,11 +36,19 @@ public class ControlPanel extends JPanel {
         leftPanel.add(Box.createHorizontalStrut(12));
         leftPanel.add(sampleCountLabel);
 
-        JButton clearButton = new JButton("Clear");
-        clearButton.addActionListener(clearAction);
+        JPanel clearPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        JButton clearAButton = new JButton("Clear A");
+        clearAButton.addActionListener(clearAAction);
+        JButton clearBButton = new JButton("Clear B");
+        clearBButton.addActionListener(clearBAction);
+        JButton clearAllButton = new JButton("Clear All");
+        clearAllButton.addActionListener(clearAllAction);
+        clearPanel.add(clearAButton);
+        clearPanel.add(clearBButton);
+        clearPanel.add(clearAllButton);
 
         add(leftPanel, BorderLayout.WEST);
-        add(clearButton, BorderLayout.EAST);
+        add(clearPanel, BorderLayout.EAST);
     }
 
     public boolean isCaptureEnabled() { return enableCheckbox.isSelected(); }

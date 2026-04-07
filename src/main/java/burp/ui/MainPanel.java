@@ -37,7 +37,7 @@ public class MainPanel {
         root = new JPanel(new BorderLayout());
         root.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        controlPanel = new ControlPanel(e -> showHelp(), e -> clearTables());
+        controlPanel = new ControlPanel(e -> showHelp(), e -> clearPoolA(), e -> clearPoolB(), e -> clearTables());
         tablesPanel = new TimingTablesPanel(existingModel, nonExistingModel);
         plotPanel = new PlotContainerPanel();
         analysisPanel = new AnalysisPanel(e -> runAnalysis(), e -> showPlot(), e -> savePlot());
@@ -118,6 +118,16 @@ public class MainPanel {
             else nonExistingModel.addTiming(r, elapsedMs);
             controlPanel.updateCounts(existingModel.getRowCount(), nonExistingModel.getRowCount());
         });
+    }
+
+    private void clearPoolA() {
+        existingModel.clear();
+        controlPanel.updateCounts(0, nonExistingModel.getRowCount());
+    }
+
+    private void clearPoolB() {
+        nonExistingModel.clear();
+        controlPanel.updateCounts(existingModel.getRowCount(), 0);
     }
 
     private void clearTables() {
