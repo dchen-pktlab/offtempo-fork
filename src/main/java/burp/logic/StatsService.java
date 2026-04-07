@@ -60,7 +60,8 @@ public class StatsService {
         PoolStats plotBStats = computePoolStats(b);
 
         double snr = computeSNR(a, b);
+        double pValue = mwu.mannWhitneyUTest(a, b);
 
-        return new TimingAnalysisResult(plotAStats, plotBStats, u, auc, snr);
+        return new TimingAnalysisResult(plotAStats, plotBStats, u, auc, snr, pValue);
     }
 }

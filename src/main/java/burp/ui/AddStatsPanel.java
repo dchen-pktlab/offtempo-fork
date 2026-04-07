@@ -61,8 +61,13 @@ public class AddStatsPanel extends JPanel {
 
         panel.add(new JLabel("U statistic: " + String.format("%.2f", result.getUStatistic())));
         panel.add(new JLabel("Signal-to-Noise: " + String.format("%.2f", result.getSignalToNoise())));
+        panel.add(new JLabel("p-value: " + formatPValue(result.getPValue())));
 
         return panel;
+    }
+
+    private String formatPValue(double p) {
+        return p < 0.0001 ? String.format("%.2e", p) : String.format("%.4f", p);
     }
 
     public void clear() {

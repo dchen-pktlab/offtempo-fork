@@ -8,9 +8,12 @@ import java.awt.*;
 
 public class AucPanel extends JPanel {
 
+    private static final Color AMBER = new Color(0xFF, 0xA5, 0x00);
+
     private final JPanel resultPanel;
     private final JLabel aucLabel;
     private final JLabel explanationLabel;
+    private final JLabel lowConfidenceLabel;
     private final JPanel interpretationPanel;
 
     public AucPanel() {
@@ -29,6 +32,12 @@ public class AucPanel extends JPanel {
         explanationLabel = new JLabel("", SwingConstants.CENTER);
         explanationLabel.setBorder(new EmptyBorder(2, 5, 2, 5));
         explanationLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        lowConfidenceLabel = new JLabel("⚠ Low confidence — collect more samples before drawing conclusions", SwingConstants.CENTER);
+        lowConfidenceLabel.setForeground(AMBER);
+        lowConfidenceLabel.setBorder(new EmptyBorder(6, 5, 2, 5));
+        lowConfidenceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lowConfidenceLabel.setVisible(false);
 
         JScrollPane resultScroll = new JScrollPane(resultPanel);
         resultScroll.setBorder(BorderFactory.createEmptyBorder());
@@ -62,9 +71,12 @@ public class AucPanel extends JPanel {
                     "The AUC (Area Under Curve) shows how likely it is to correctly tell Plot A requests from Plot B based on response times."
             );
 
+            lowConfidenceLabel.setVisible(result.getPValue() > 0.05);
+
             resultPanel.add(aucLabel);
             resultPanel.add(Box.createRigidArea(new Dimension(0, 10)));
             resultPanel.add(explanationLabel);
+            resultPanel.add(lowConfidenceLabel);
 
             interpretationPanel.setVisible(true);
         }
@@ -77,6 +89,7 @@ public class AucPanel extends JPanel {
     public void clear() {
         aucLabel.setText("");
         explanationLabel.setText("");
+        lowConfidenceLabel.setVisible(false);
         resultPanel.removeAll();
         interpretationPanel.setVisible(false);
         resultPanel.revalidate();
