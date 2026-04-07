@@ -10,6 +10,8 @@ public class PoolStats {
     private final double mean;
     private final double median;
     private final double stdDev;
+    private final double p95;
+    private final double p99;
     private final double min;
     private final double max;
 }

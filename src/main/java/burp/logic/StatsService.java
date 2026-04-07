@@ -29,6 +29,8 @@ public class StatsService {
                 stats.getMean(),
                 median,
                 stats.getStandardDeviation(),
+                stats.getPercentile(95),
+                stats.getPercentile(99),
                 stats.getMin(),
                 stats.getMax()
         );
