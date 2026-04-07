@@ -11,6 +11,6 @@ public class TimingAnalysisResult {
 
     private final double uStatistic;
     private final double auc;
-    private final double signalToNoise;
+    private final double cohensD;
     private final double pValue;
 }

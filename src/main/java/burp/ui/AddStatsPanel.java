@@ -46,6 +46,7 @@ public class AddStatsPanel extends JPanel {
         panel.add(new JLabel("Count: " + stats.getCount()));
         panel.add(new JLabel("Mean: " + String.format("%.2f", stats.getMean())));
         panel.add(new JLabel("Median: " + String.format("%.2f", stats.getMedian())));
+        panel.add(new JLabel("Std Dev: " + String.format("%.2f", stats.getStdDev())));
         panel.add(new JLabel("Min: " + String.format("%.2f", stats.getMin())));
         panel.add(new JLabel("Max: " + String.format("%.2f", stats.getMax())));
 
@@ -60,7 +61,7 @@ public class AddStatsPanel extends JPanel {
         panel.add(Box.createRigidArea(new Dimension(0, 5)));
 
         panel.add(new JLabel("U statistic: " + String.format("%.2f", result.getUStatistic())));
-        panel.add(new JLabel("Signal-to-Noise: " + String.format("%.2f", result.getSignalToNoise())));
+        panel.add(new JLabel("Cohen's d (effect size): " + String.format("%.2f", result.getCohensD())));
         panel.add(new JLabel("p-value: " + formatPValue(result.getPValue())));
 
         return panel;

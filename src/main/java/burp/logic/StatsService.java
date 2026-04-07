@@ -6,7 +6,6 @@ import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 
-import java.util.Arrays;
 
 public class StatsService {
 
@@ -29,12 +28,13 @@ public class StatsService {
                 arr.length,
                 stats.getMean(),
                 median,
+                stats.getStandardDeviation(),
                 stats.getMin(),
                 stats.getMax()
         );
     }
 
-    private double computeSNR(double[] a, double[] b) {
+    private double computeCohensD(double[] a, double[] b) {
         int n1 = a.length;
         int n2 = b.length;
 
@@ -44,9 +44,8 @@ public class StatsService {
         double pooledVariance =
                 ((n1 - 1) * statsA.getVariance() + (n2 - 1) * statsB.getVariance()) / (n1 + n2 - 2);
         double pooledStd = Math.sqrt(pooledVariance);
-        double snr = pooledStd == 0 ? 0.0 : Math.abs(statsA.getMean() - statsB.getMean()) / pooledStd;
 
-        return snr;
+        return pooledStd == 0 ? 0.0 : Math.abs(statsA.getMean() - statsB.getMean()) / pooledStd;
     }
 
     public TimingAnalysisResult computeStats(double[] a, double[] b) {
@@ -59,9 +58,8 @@ public class StatsService {
         PoolStats plotAStats = computePoolStats(a);
         PoolStats plotBStats = computePoolStats(b);
 
-        double snr = computeSNR(a, b);
         double pValue = mwu.mannWhitneyUTest(a, b);
 
-        return new TimingAnalysisResult(plotAStats, plotBStats, u, auc, snr, pValue);
+        return new TimingAnalysisResult(plotAStats, plotBStats, u, auc, computeCohensD(a, b), pValue);
     }
 }
