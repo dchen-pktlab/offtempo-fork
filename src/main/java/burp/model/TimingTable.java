@@ -65,4 +65,14 @@ public class TimingTable extends AbstractTableModel {
         }
         return result;
     }
+
+    public record ExportRow(int messageId, long elapsed) {}
+
+    public List<ExportRow> getExportRows() {
+        List<ExportRow> result = new ArrayList<>(rows.size());
+        for (Row r : rows) {
+            result.add(new ExportRow(r.req.burpMessageId, r.elapsed));
+        }
+        return result;
+    }
 }

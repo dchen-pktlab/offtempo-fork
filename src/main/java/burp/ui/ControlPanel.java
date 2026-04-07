@@ -13,7 +13,7 @@ public class ControlPanel extends JPanel {
     private final JComboBox<String> typeSelector;
     private final JLabel sampleCountLabel;
 
-    public ControlPanel(ActionListener helpAction, ActionListener clearAAction, ActionListener clearBAction, ActionListener clearAllAction) {
+    public ControlPanel(ActionListener helpAction, ActionListener clearAAction, ActionListener clearBAction, ActionListener clearAllAction, ActionListener exportAction) {
         super(new BorderLayout());
         setBorder(new EmptyBorder(10, 10, 10, 10));
 
@@ -43,6 +43,10 @@ public class ControlPanel extends JPanel {
         clearBButton.addActionListener(clearBAction);
         JButton clearAllButton = new JButton("Clear All");
         clearAllButton.addActionListener(clearAllAction);
+        JButton exportButton = new JButton("Export CSV");
+        exportButton.addActionListener(exportAction);
+
+        clearPanel.add(exportButton);
         clearPanel.add(clearAButton);
         clearPanel.add(clearBButton);
         clearPanel.add(clearAllButton);

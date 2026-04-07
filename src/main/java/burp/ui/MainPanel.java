@@ -10,7 +10,10 @@ import org.knowm.xchart.XChartPanel;
 import org.knowm.xchart.XYChart;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 
 public class MainPanel {
@@ -37,7 +40,7 @@ public class MainPanel {
         root = new JPanel(new BorderLayout());
         root.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        controlPanel = new ControlPanel(e -> showHelp(), e -> clearPoolA(), e -> clearPoolB(), e -> clearTables());
+        controlPanel = new ControlPanel(e -> showHelp(), e -> clearPoolA(), e -> clearPoolB(), e -> clearTables(), e -> exportCsv());
         tablesPanel = new TimingTablesPanel(existingModel, nonExistingModel);
         plotPanel = new PlotContainerPanel();
         analysisPanel = new AnalysisPanel(e -> runAnalysis(), e -> showPlot(), e -> savePlot());
@@ -118,6 +121,37 @@ public class MainPanel {
             else nonExistingModel.addTiming(r, elapsedMs);
             controlPanel.updateCounts(existingModel.getRowCount(), nonExistingModel.getRowCount());
         });
+    }
+
+    private void exportCsv() {
+        if (existingModel.getRowCount() == 0 && nonExistingModel.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(root, "No data to export.", "Export CSV", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Save CSV");
+        chooser.setFileFilter(new FileNameExtensionFilter("CSV files (*.csv)", "csv"));
+        chooser.setSelectedFile(new java.io.File("offtempo_timings.csv"));
+
+        if (chooser.showSaveDialog(root) != JFileChooser.APPROVE_OPTION) return;
+
+        java.io.File file = chooser.getSelectedFile();
+        if (!file.getName().endsWith(".csv")) {
+            file = new java.io.File(file.getAbsolutePath() + ".csv");
+        }
+
+        try (FileWriter fw = new FileWriter(file)) {
+            fw.write("Pool,Message ID,Elapsed (ms)\n");
+            for (TimingTable.ExportRow row : existingModel.getExportRows()) {
+                fw.write("A," + row.messageId() + "," + row.elapsed() + "\n");
+            }
+            for (TimingTable.ExportRow row : nonExistingModel.getExportRows()) {
+                fw.write("B," + row.messageId() + "," + row.elapsed() + "\n");
+            }
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(root, "Error writing file: " + ex.getMessage(), "Export CSV", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void clearPoolA() {
