@@ -15,7 +15,7 @@ public class AnalysisPanel extends JPanel {
     private JButton runBtn;
     private JButton saveBtn;
 
-    public AnalysisPanel(ActionListener runAction, ActionListener plotAction, ActionListener saveAction) {
+    public AnalysisPanel(ActionListener runAction, ActionListener saveAction) {
         super(new BorderLayout());
         setBorder(new EmptyBorder(10, 10, 10, 10));
 
@@ -23,11 +23,7 @@ public class AnalysisPanel extends JPanel {
 
         runBtn = new JButton("Run");
         runBtn.setEnabled(false);
-        runBtn.addActionListener(e -> {
-            runAction.actionPerformed(e);
-            plotAction.actionPerformed(e);
-            saveBtn.setVisible(true);
-        });
+        runBtn.addActionListener(runAction);
 
         runBtn.setBackground(new Color(0xDD5D33));
         runBtn.setForeground(Color.WHITE);
@@ -58,6 +54,10 @@ public class AnalysisPanel extends JPanel {
     public void showResult(TimingAnalysisResult result) {
         aucPanel.showResult(result);
         statsPanel.showResult(result);
+    }
+
+    public void showSaveButton() {
+        saveBtn.setVisible(true);
     }
 
     public void clearResult() {

@@ -12,6 +12,7 @@ import org.knowm.xchart.XYChart;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.util.concurrent.ExecutionException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
@@ -45,7 +46,7 @@ public class MainPanel {
         controlPanel = new ControlPanel(e -> showHelp(), e -> clearPoolA(), e -> clearPoolB(), e -> clearTables(), e -> exportCsv());
         tablesPanel = new TimingTablesPanel(existingModel, nonExistingModel);
         plotPanel = new PlotContainerPanel();
-        analysisPanel = new AnalysisPanel(e -> runAnalysis(), e -> showPlot(), e -> savePlot());
+        analysisPanel = new AnalysisPanel(e -> runAnalysis(), e -> savePlot());
 
         root.add(controlPanel, BorderLayout.NORTH);
 
@@ -81,11 +82,29 @@ public class MainPanel {
             return;
         }
 
-        double[] existingTimesArray = existingTimes.stream().mapToDouble(Long::doubleValue).toArray();
-        double[] nonExistingTimesArray = nonExistingTimes.stream().mapToDouble(Long::doubleValue).toArray();
+        analysisPanel.setRunEnabled(false);
 
-        TimingAnalysisResult result = statsService.computeStats(existingTimesArray, nonExistingTimesArray);
-        analysisPanel.showResult(result);
+        new SwingWorker<TimingAnalysisResult, Void>() {
+            @Override
+            protected TimingAnalysisResult doInBackground() {
+                double[] a = existingTimes.stream().mapToDouble(Long::doubleValue).toArray();
+                double[] b = nonExistingTimes.stream().mapToDouble(Long::doubleValue).toArray();
+                return statsService.computeStats(a, b);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    analysisPanel.showResult(get());
+                    showPlot();
+                    analysisPanel.showSaveButton();
+                } catch (InterruptedException | ExecutionException ex) {
+                    JOptionPane.showMessageDialog(suiteFrame, "Analysis failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    analysisPanel.setRunEnabled(true);
+                }
+            }
+        }.execute();
     }
 
     private void showPlot() {
