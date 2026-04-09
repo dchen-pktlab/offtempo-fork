@@ -19,6 +19,7 @@ import java.util.List;
 public class MainPanel {
 
     private final JPanel root;
+    private final Component suiteFrame;
     private final TimingTable existingModel;
     private final TimingTable nonExistingModel;
 
@@ -30,9 +31,10 @@ public class MainPanel {
     private final StatsService statsService;
     private final PlotService plotService;
 
-    public MainPanel(StatsService statsService, PlotService plotService) {
+    public MainPanel(StatsService statsService, PlotService plotService, Component suiteFrame) {
         this.statsService = statsService;
         this.plotService = plotService;
+        this.suiteFrame = suiteFrame;
 
         existingModel = new TimingTable();
         nonExistingModel = new TimingTable();
@@ -68,14 +70,14 @@ public class MainPanel {
 
     private void showHelp() {
         HelpPanel hp = new HelpPanel();
-        JOptionPane.showMessageDialog(root, hp, "Help", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(suiteFrame, hp, "Help", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void runAnalysis() {
         List<Long> existingTimes = existingModel.getAllTimings();
         List<Long> nonExistingTimes = nonExistingModel.getAllTimings();
         if (existingTimes.isEmpty() || nonExistingTimes.isEmpty()) {
-            JOptionPane.showMessageDialog(root, "No data available", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(suiteFrame, "No data available", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -96,19 +98,19 @@ public class MainPanel {
             XChartPanel<XYChart> panel = plotService.buildPairedScatter(existing, nonExisting);
             plotPanel.showPlot(panel);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(root, "Error creating plot: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(suiteFrame, "Error creating plot: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void savePlot() {
         try {
             if (plotPanel.getLastPanel() == null) {
-                JOptionPane.showMessageDialog(root, "No plot available. Generate a plot first.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(suiteFrame, "No plot available. Generate a plot first.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            plotService.saveLastPlot(root);
+            plotService.saveLastPlot(suiteFrame);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(root, "Error saving plot: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(suiteFrame, "Error saving plot: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -125,7 +127,7 @@ public class MainPanel {
 
     private void exportCsv() {
         if (existingModel.getRowCount() == 0 && nonExistingModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(root, "No data to export.", "Export CSV", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(suiteFrame, "No data to export.", "Export CSV", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
@@ -134,7 +136,7 @@ public class MainPanel {
         chooser.setFileFilter(new FileNameExtensionFilter("CSV files (*.csv)", "csv"));
         chooser.setSelectedFile(new java.io.File("offtempo_timings.csv"));
 
-        if (chooser.showSaveDialog(root) != JFileChooser.APPROVE_OPTION) return;
+        if (chooser.showSaveDialog(suiteFrame) != JFileChooser.APPROVE_OPTION) return;
 
         java.io.File file = chooser.getSelectedFile();
         if (!file.getName().endsWith(".csv")) {
@@ -150,7 +152,7 @@ public class MainPanel {
                 fw.write("B," + row.messageId() + "," + row.elapsed() + "\n");
             }
         } catch (IOException ex) {
-            JOptionPane.showMessageDialog(root, "Error writing file: " + ex.getMessage(), "Export CSV", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(suiteFrame, "Error writing file: " + ex.getMessage(), "Export CSV", JOptionPane.ERROR_MESSAGE);
         }
     }
 
