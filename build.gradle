@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'net.portswigger.burp.extensions:montoya-api:2025.8'
+    compileOnly 'net.portswigger.burp.extensions:montoya-api:2025.8'
     implementation 'com.google.code.gson:gson:2.10.+'
     compileOnly 'org.projectlombok:lombok:1.18.+'
     annotationProcessor 'org.projectlombok:lombok:1.18.+'
