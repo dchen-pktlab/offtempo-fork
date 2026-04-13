@@ -46,8 +46,5 @@ The JAR is generated under `build/libs/`. Load it into Burp Suite as above.
 3.   **Switch to Pool B**: Select Pool B in OffTempo, then run a second Intruder attack for your other class of requests (e.g. a known *non-existing* resource).
 <img width="1373" height="305" alt="Screenshot 2026-04-07 165202" src="https://github.com/user-attachments/assets/38e0e905-03c5-4a9c-bc0d-0514271c6594" />
 
-4.  **Run analysis**: Click **Run**. OffTempo computes the AUC score, plots both distributions, and outputs statistical metrics. Use **Export CSV** to save raw timing data for offline analysis or to share with a colleague.
+4.  **Run analysis**: Click **Run**. OffTempo computes the AUC score, plots both distributions, and outputs statistical metrics.
 <img width="1374" height="651" alt="Screenshot 2026-04-07 165149" src="https://github.com/user-attachments/assets/23c59882-310d-4c64-a129-da4f0755d08f" />
-
-
-The two pools don't need to contain identical requests. For blind SQLi, one pool can be your baseline while the other contains injection payloads. The request structure can differ as long as the timing difference is what you're measuring.
