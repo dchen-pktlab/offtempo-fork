@@ -1,6 +1,8 @@
-# OffTempo ⌛
+# OffTempo
 
-**Statistical timing side-channel analysis for Burp Suite.**
+<img width="200" height="200" alt="offtempo-hourglass" src="https://github.com/user-attachments/assets/de2dc52f-40c0-4035-bffc-f0abe3f1c42a" />
+
+## **Statistical timing side-channel analysis for Burp Suite.**
 
 <img width="1370" height="1022" alt="Screenshot 2026-04-07 165132" src="https://github.com/user-attachments/assets/9bfa6816-02b3-4bf7-928e-41525e9dc858" />
 
