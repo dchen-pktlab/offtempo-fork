@@ -1,10 +1,10 @@
 # Simultaneous Timing Attacks
 1. Create two resource pools in burp suite (Settings > Project > Tasks > New Resource Pool > Set Max Concurrent Requests = 1
 2. Create your intruder request
-  2.1. Set one of them with a HTTP header `X-OffTempo-Pool: A`
-  2.1. Set one of them with a HTTP header `X-OffTempo-Pool: B`
-3. Start attack for both of the intruder requests
-4. Go to Offtempo tab and just wait, click Run after enough samples collected
+2.1. Set one of them with a HTTP header `X-OffTempo-Pool: A`
+2.2. Set one of them with a HTTP header `X-OffTempo-Pool: B`
+4. Start attack for both of the intruder requests
+5. Go to Offtempo tab and just wait, click Run after enough samples collected
 
 
 # OffTempo
