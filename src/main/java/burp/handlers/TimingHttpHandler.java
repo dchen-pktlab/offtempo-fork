@@ -20,16 +20,39 @@ public class TimingHttpHandler implements HttpHandler {
     }
 
     @Override
-    public RequestToBeSentAction handleHttpRequestToBeSent(HttpRequestToBeSent requestToBeSent) {
-        if (requestToBeSent.toolSource().isFromTool(ToolType.INTRUDER) && mainPanel.isCaptureEnabled()) {
-            String selected = mainPanel.getSelectedType();
-            if ("Pool A".equals(selected)) {
-                existingRequestMap.put(requestToBeSent.messageId(), new HttpRequestWithTimestamp(requestToBeSent.messageId(), System.currentTimeMillis()));
-            } else {
-                nonExistingRequestMap.put(requestToBeSent.messageId(), new HttpRequestWithTimestamp(requestToBeSent.messageId(), System.currentTimeMillis()));
-            }
+    public RequestToBeSentAction handleHttpRequestToBeSent(HttpRequestToBeSent req) {
+        if (!req.toolSource().isFromTool(ToolType.INTRUDER) || !mainPanel.isCaptureEnabled()) {
+            return RequestToBeSentAction.continueWith(req);
         }
-        return RequestToBeSentAction.continueWith(requestToBeSent);
+        String selected = mainPanel.getSelectedType();
+
+        String pool = req.hasHeader("X-OffTempo-Pool")
+            ? req.headerValue("X-OffTempo-Pool")
+            : selected;
+
+        if ("A".equals(pool)) {
+            existingRequestMap.put(req.messageId(), new HttpRequestWithTimestamp(req.messageId(), System.currentTimeMillis()));
+        }
+        else {
+            nonExistingRequestMap.put(req.messageId(), new HttpRequestWithTimestamp(req.messageId(), System.currentTimeMillis()));
+        }
+
+        if (req.hasHeader("X-OffTempo-Pool")) {
+            return RequestToBeSentAction.continueWith(
+                req.withRemovedHeader("X-OffTempo-Pool")
+            );
+        }
+        return RequestToBeSentAction.continueWith(req);
+
+        // if (requestToBeSent.toolSource().isFromTool(ToolType.INTRUDER) && mainPanel.isCaptureEnabled()) {
+        //     String selected = mainPanel.getSelectedType();
+        //     if ("Pool A".equals(selected)) {
+        //         existingRequestMap.put(requestToBeSent.messageId(), new HttpRequestWithTimestamp(requestToBeSent.messageId(), System.currentTimeMillis()));
+        //     } else {
+        //         nonExistingRequestMap.put(requestToBeSent.messageId(), new HttpRequestWithTimestamp(requestToBeSent.messageId(), System.currentTimeMillis()));
+        //     }
+        // }
+        // return RequestToBeSentAction.continueWith(requestToBeSent);
     }
 
     @Override
